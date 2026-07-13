@@ -85,9 +85,7 @@ def create_drive():
     db.session.add(drive)
     db.session.commit()
 
-    return jsonify({
-        "message":"Placement Drive Created Successfully"
-    }),201
+    return jsonify({"message":"Placement Drive Created Successfully"}),201
 
 @company_bp.route("/company/drive/<int:id>", methods=["PUT"])
 @jwt_required()
@@ -127,9 +125,7 @@ def edit_drive(id):
 
     db.session.commit()
 
-    return jsonify({
-        "message":"Drive Updated Successfully"
-    }),200
+    return jsonify({"message":"Drive Updated Successfully"}),200
 
 @company_bp.route("/company/drive/<int:id>/close", methods=["PUT"])
 @jwt_required()
