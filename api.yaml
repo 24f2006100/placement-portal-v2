@@ -1,0 +1,632 @@
+openapi: 3.0.3
+info:
+  title: Placement Portal Application V2 API
+  version: 1.0.0
+  description: REST API definition for the Placement Portal Application V2.
+
+servers:
+  - url: http://127.0.0.1:5000
+    description: Local Flask development server
+
+tags:
+  - name: Authentication
+  - name: Admin
+  - name: Company
+  - name: Student
+
+paths:
+  /register/student:
+    post:
+      tags: [Authentication]
+      summary: Register a student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentRegistration'
+      responses:
+        '201':
+          description: Student registered successfully
+        '400':
+          description: Required fields are missing
+        '409':
+          description: Email already registered
+
+  /register/company:
+    post:
+      tags: [Authentication]
+      summary: Register a company
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyRegistration'
+      responses:
+        '201':
+          description: Company registered successfully
+        '400':
+          description: Required fields are missing
+        '409':
+          description: Email already registered
+
+  /login:
+    post:
+      tags: [Authentication]
+      summary: Login as Admin, Company, or Student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful and JWT access token returned
+        '400':
+          description: Email and password are required
+        '401':
+          description: Invalid credentials or role
+        '403':
+          description: Account deactivated
+
+  /profile:
+    get:
+      tags: [Authentication]
+      summary: View protected JWT profile information
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Protected profile information
+        '401':
+          description: Missing or invalid JWT
+
+  /admin/dashboard:
+    get:
+      tags: [Admin]
+      summary: Get Admin dashboard statistics
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dashboard statistics returned
+        '403':
+          description: Access denied
+
+  /admin/companies:
+    get:
+      tags: [Admin]
+      summary: List all companies
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Company list returned
+        '403':
+          description: Access denied
+
+  /admin/company/{id}/approve:
+    put:
+      tags: [Admin]
+      summary: Approve a company
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Company approved
+        '404':
+          description: Company not found
+
+  /admin/company/{id}/reject:
+    put:
+      tags: [Admin]
+      summary: Reject a company
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Company rejected
+        '404':
+          description: Company not found
+
+  /admin/company/{id}/deactivate:
+    put:
+      tags: [Admin]
+      summary: Deactivate a company account
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Company deactivated
+        '404':
+          description: Company not found
+
+  /admin/students:
+    get:
+      tags: [Admin]
+      summary: List all students
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Student list returned
+        '403':
+          description: Access denied
+
+  /admin/student/{id}/deactivate:
+    put:
+      tags: [Admin]
+      summary: Deactivate a student account
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Student deactivated
+        '404':
+          description: Student not found
+
+  /admin/drives:
+    get:
+      tags: [Admin]
+      summary: List all placement drives
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Placement drive list returned
+
+  /admin/drive/{id}/approve:
+    put:
+      tags: [Admin]
+      summary: Approve a placement drive
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Drive approved
+        '404':
+          description: Drive not found
+
+  /admin/drive/{id}/reject:
+    put:
+      tags: [Admin]
+      summary: Reject a placement drive
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Drive rejected
+        '404':
+          description: Drive not found
+
+  /admin/drive/{id}:
+    delete:
+      tags: [Admin]
+      summary: Delete a placement drive
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Drive deleted
+        '404':
+          description: Drive not found
+
+  /admin/applications:
+    get:
+      tags: [Admin]
+      summary: View all student applications
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Application list returned
+
+  /admin/application/{id}:
+    delete:
+      tags: [Admin]
+      summary: Delete an application
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Application deleted
+        '404':
+          description: Application not found
+
+  /admin/search/company:
+    get:
+      tags: [Admin]
+      summary: Search companies by name
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Matching companies returned
+
+  /admin/search/student:
+    get:
+      tags: [Admin]
+      summary: Search students by name
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Matching students returned
+
+  /admin/export/students:
+    get:
+      tags: [Admin]
+      summary: Trigger asynchronous student CSV export
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Student CSV export started
+
+  /admin/export/companies:
+    get:
+      tags: [Admin]
+      summary: Trigger asynchronous company CSV export
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Company CSV export started
+
+  /admin/export/applications:
+    get:
+      tags: [Admin]
+      summary: Trigger asynchronous application CSV export
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Application CSV export started
+
+  /admin/export/placements:
+    get:
+      tags: [Admin]
+      summary: Trigger asynchronous placement CSV export
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Placement CSV export started
+
+  /admin/download/{filename}:
+    get:
+      tags: [Admin]
+      summary: Download an Admin CSV export
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Filename'
+      responses:
+        '200':
+          description: CSV file returned
+
+  /company/dashboard:
+    get:
+      tags: [Company]
+      summary: Get company dashboard
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Company status and dashboard statistics returned
+        '404':
+          description: Company not found
+
+  /company/create-drive:
+    post:
+      tags: [Company]
+      summary: Create a placement drive
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriveRequest'
+      responses:
+        '201':
+          description: Placement drive created
+        '403':
+          description: Company not approved
+
+  /company/drive/{id}:
+    put:
+      tags: [Company]
+      summary: Edit a company placement drive
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriveRequest'
+      responses:
+        '200':
+          description: Drive updated
+        '404':
+          description: Drive not found
+    delete:
+      tags: [Company]
+      summary: Delete a company placement drive
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Drive deleted
+        '404':
+          description: Drive not found
+
+  /student/dashboard:
+    get:
+      tags: [Student]
+      summary: Get student dashboard
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Student dashboard returned
+        '404':
+          description: Student not found
+
+  /student/drives:
+    get:
+      tags: [Student]
+      summary: List approved placement drives
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Approved drives returned
+
+  /student/apply/{drive_id}:
+    post:
+      tags: [Student]
+      summary: Apply for a placement drive
+      description: Applies CGPA eligibility validation and prevents duplicate applications.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: drive_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Application submitted
+        '400':
+          description: Student does not meet eligibility requirements
+        '404':
+          description: Student or drive not found
+        '409':
+          description: Student already applied
+
+  /student/applications:
+    get:
+      tags: [Student]
+      summary: View student application history
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Application history returned
+
+  /student/resume:
+    post:
+      tags: [Student]
+      summary: Upload a PDF resume
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [resume]
+              properties:
+                resume:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Resume uploaded
+        '400':
+          description: Missing file or non-PDF file
+    get:
+      tags: [Student]
+      summary: View the logged-in student's resume
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: PDF resume returned
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Resume not found
+
+  /student/export/status/{task_id}:
+    get:
+      tags: [Student]
+      summary: Check asynchronous CSV export task status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Current task status returned
+        '500':
+          description: Export task failed
+
+  /student/export/download/{filename}:
+    get:
+      tags: [Student]
+      summary: Download completed application-history CSV export
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Filename'
+      responses:
+        '200':
+          description: CSV file returned
+        '404':
+          description: Export file not found
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    Filename:
+      name: filename
+      in: path
+      required: true
+      schema:
+        type: string
+
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password, role]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        role:
+          type: string
+          enum: [admin, company, student]
+
+    StudentRegistration:
+      type: object
+      required: [full_name, email, password]
+      properties:
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        branch:
+          type: string
+        cgpa:
+          type: number
+          format: float
+        graduation_year:
+          type: integer
+        phone:
+          type: string
+
+    CompanyRegistration:
+      type: object
+      required: [full_name, email, password, company_name]
+      properties:
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        company_name:
+          type: string
+        website:
+          type: string
+        hr_name:
+          type: string
+        hr_email:
+          type: string
+          format: email
+
+    DriveRequest:
+      type: object
+      required:
+        - title
+        - description
+        - salary_package
+        - location
+        - branch_required
+        - cgpa_required
+        - deadline
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        salary_package:
+          type: number
+          format: float
+        location:
+          type: string
+        branch_required:
+          type: string
+        cgpa_required:
+          type: number
+          format: float
+        deadline:
+          type: string
+          format: date
